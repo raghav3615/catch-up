@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import io, { Socket } from 'socket.io-client';
 import Peer from 'simple-peer';
-import Navbar from '@/components/Navbar';
 
 interface PeerConnection {
   peerId: string;
@@ -191,13 +190,10 @@ export default function Room({ params }: { params: { roomId: string } }) {
       setIsScreenSharing(false);
     }
   };
-
   return (
     <div className="min-h-screen flex flex-col">
-      {/* <Navbar /> */}
-      
       {/* Room Info Bar */}
-      <div className="fixed left-0 w-full z-40 bg-[#12141c]/60 backdrop-blur-md border-b border-[#ffffff10] py-3 px-4">
+      <div className="fixed left-0 top-0 w-full z-40 bg-[#12141c]/60 backdrop-blur-md border-b border-[#ffffff10] py-3 px-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold">Meeting Room</span>
@@ -223,10 +219,19 @@ export default function Room({ params }: { params: { roomId: string } }) {
                 </>
               }
             </div>
+            <button 
+              onClick={() => router.push('/')}
+              className="glass-card px-3 py-1.5 rounded-full text-sm text-red-400 hover:text-red-300 flex items-center gap-2 hover:border-red-500/30 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Exit
+            </button>
           </div>
         </div>
       </div>      
-      <div className="container mx-auto p-4 md:p-6 pt-28 relative">
+      <div className="container mx-auto p-4 md:p-6 pt-20 relative">
         {/* Video grid - Screen share gets priority */}
         <div className="mt-15 top-25">          {isScreenSharing && (
             <div className="glass-card relative rounded-xl overflow-hidden border border-[#ffffff15]">              <video

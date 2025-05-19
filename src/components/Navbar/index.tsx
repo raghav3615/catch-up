@@ -83,7 +83,7 @@ export default function Navbar() {
                 Sign In
               </button>
               <Link 
-                href="https://github.com/yourusername/video-conference-app" 
+                href="https://github.com/raghav3615/catch-up" 
                 target="_blank" 
                 className="rounded-full p-2 hover:bg-[#ffffff10] transition-colors"
                 aria-label="GitHub repository"

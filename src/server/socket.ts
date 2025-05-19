@@ -1,13 +1,13 @@
-const { Server } = require('socket.io');
-const { Server: HTTPServer } = require('node:http');
-const { Socket } = require('socket.io');
+import { Server } from 'socket.io';
+import { Server as HTTPServer } from 'node:http';
+import { Socket } from 'socket.io';
 
 interface SignalData {
   signal: any;
   to: string;
 }
 
-const initializeSocket = (httpServer) => {
+export const initializeSocket = (httpServer: HTTPServer) => {
   const io = new Server(httpServer, {
     cors: {
       origin: process.env.NEXTAUTH_URL || 'http://localhost:3000',
@@ -16,8 +16,7 @@ const initializeSocket = (httpServer) => {
   });
 
   const rooms: { [key: string]: string[] } = {};
-
-  io.on('connection', (socket) => {
+  io.on('connection', (socket: Socket) => {
     console.log('User connected:', socket.id);
 
     socket.on('join-room', (roomId: string) => {
@@ -49,7 +48,5 @@ const initializeSocket = (httpServer) => {
     });
   });
 
-  return io;
+    return io;
 };
-
-module.exports = { initializeSocket }; 
