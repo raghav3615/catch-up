@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/firebase/auth';
 
 export default function Navbar() {
@@ -72,14 +73,17 @@ export default function Navbar() {
                   </svg>
                 )}
                 {isSigningOut ? 'Signing Out...' : 'Logout'}
-              </button>
-              {user.photoURL && (
+              </button>              {user.photoURL && (
                 <Link href="/profile">
-                  <img 
-                    src={user.photoURL} 
-                    alt="Profile" 
-                    className="w-9 h-9 rounded-full border-2 border-accent/50 cursor-pointer hover:border-accent transition-colors"
-                  />
+                  <div className="relative w-9 h-9">
+                    <Image 
+                      src={user.photoURL} 
+                      alt="Profile" 
+                      fill
+                      sizes="36px"
+                      className="rounded-full border-2 border-accent/50 cursor-pointer hover:border-accent transition-colors object-cover"
+                    />
+                  </div>
                 </Link>
               )}
             </div>          ): (

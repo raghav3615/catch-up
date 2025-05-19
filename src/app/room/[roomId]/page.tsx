@@ -84,7 +84,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
       socketRef.current?.disconnect();
       peers.forEach(({ peer }) => peer.destroy());
     };
-  }, [user, roomId, router, peers]);
+  }, [user, roomId, router, peers, stream, screenStream]);
   const connectToNewUser = (userId: string, stream: MediaStream) => {
     const peer = new Peer({
       initiator: true,
