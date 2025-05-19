@@ -194,10 +194,10 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      {/* <Navbar /> */}
       
       {/* Room Info Bar */}
-      <div className="fixed top-20 left-0 w-full z-40 bg-[#12141c]/60 backdrop-blur-md border-b border-[#ffffff10] py-3 px-4">
+      <div className="fixed left-0 w-full z-40 bg-[#12141c]/60 backdrop-blur-md border-b border-[#ffffff10] py-3 px-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold">Meeting Room</span>
@@ -228,7 +228,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
       </div>      
       <div className="container mx-auto p-4 md:p-6 pt-28 relative">
         {/* Video grid - Screen share gets priority */}
-        <div className="mb-6">          {isScreenSharing && (
+        <div className="mt-15 top-25">          {isScreenSharing && (
             <div className="glass-card relative rounded-xl overflow-hidden border border-[#ffffff15]">              <video
                 ref={(video) => {
                   if (video && screenStream) {
