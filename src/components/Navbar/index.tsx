@@ -1,12 +1,13 @@
 'use client';
 
-import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/firebase/auth';
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const { user, signOut, signInWithGoogle, signInWithGithub } = useAuth();
   const [scrolled, setScrolled] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,39 +50,46 @@ export default function Navbar() {
           <NavLink href="/pricing">Pricing</NavLink>
         </div>
         
-        {/* Right side - Auth buttons or user menu */}
-        <div className="flex items-center gap-2">          {session ? (
+        {/* Right side - Auth buttons or user menu */}        <div className="flex items-center gap-2">          {user ? (
             <div className="flex items-center gap-2">
               <Link href="/room" className="nav-button bg-gradient-to-r from-primary to-accent hover:opacity-90">
                 Start a Meeting
               </Link>              <button
-                onClick={() => signOut()}
+                onClick={async () => {
+                  setIsSigningOut(true);
+                  await signOut();
+                  setIsSigningOut(false);
+                }}
                 className="nav-button border border-[#ffffff20] hover:bg-[#ffffff15] transition-colors flex items-center gap-1"
                 aria-label="Sign out"
+                disabled={isSigningOut}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Logout
+                {isSigningOut ? (
+                  <span className="inline-block w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin mr-1"></span>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                )}
+                {isSigningOut ? 'Signing Out...' : 'Logout'}
               </button>
-              {session.user?.image && (
+              {user.photoURL && (
                 <Link href="/profile">
                   <img 
-                    src={session.user.image} 
+                    src={user.photoURL} 
                     alt="Profile" 
                     className="w-9 h-9 rounded-full border-2 border-accent/50 cursor-pointer hover:border-accent transition-colors"
                   />
                 </Link>
               )}
-            </div>
-          ): (
+            </div>          ): (
             <>
-              <button 
-                onClick={() => signIn()} 
+              <Link 
+                href="/auth/signin" 
                 className="nav-button bg-gradient-to-r from-primary to-accent hover:opacity-90"
               >
                 Sign In
-              </button>
+              </Link>
               <Link 
                 href="https://github.com/raghav3615/catch-up" 
                 target="_blank" 

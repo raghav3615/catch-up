@@ -1,15 +1,15 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/firebase/auth';
 import Hero from './Hero';
 import Features from './Features';
 import CallToAction from './CallToAction';
 import Dashboard from '../Dashboard';
 
 export default function Home() {
-  const { data: session, status } = useSession();
+  const { user, loading } = useAuth();
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-pulse text-primary">Loading...</div>
@@ -18,7 +18,7 @@ export default function Home() {
   }
 
   // Show dashboard for authenticated users
-  if (session) {
+  if (user) {
     return <Dashboard />;
   }
 

@@ -1,12 +1,12 @@
  'use client';
 
-import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '@/firebase/auth';
 
 export default function Dashboard() {
-  const { data: session } = useSession();
+  const { user } = useAuth();
   const [roomCode, setRoomCode] = useState('');
   const router = useRouter();
 
@@ -24,9 +24,8 @@ export default function Dashboard() {
     <div className="flex-1">
       <div className="container mx-auto px-4 pt-36 pb-16">
         <div className="max-w-3xl mx-auto">
-          <div className="mb-12 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-6 gradient-text">
-              Welcome, {session?.user?.name?.split(' ')[0]}
+          <div className="mb-12 text-center">            <h1 className="text-3xl md:text-4xl font-bold mb-6 gradient-text">
+              Welcome, {user?.displayName?.split(' ')[0] || 'User'}
             </h1>
             <p className="text-muted-foreground">
               Create a new meeting room or join an existing one

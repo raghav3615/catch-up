@@ -1,11 +1,12 @@
 'use client';
 
-import { useSession, signIn } from 'next-auth/react';
+import { useAuth } from '@/firebase/auth';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function CallToAction() {
-  const { data: session } = useSession();
+  const { user, signInWithGoogle } = useAuth();
   const router = useRouter();
   
   const createRoom = () => {
@@ -38,14 +39,22 @@ export default function CallToAction() {
             <p className="text-lg text-muted-foreground mb-10">
               Join thousands of users who have already switched to our secure, high-quality video conferencing platform.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={session ? createRoom : () => signIn()}
-                className="nav-button bg-gradient-to-r from-primary to-accent px-8 py-4 rounded-full text-lg font-medium hover:opacity-90"
-              >
-                {session ? 'Start a New Meeting' : 'Get Started for Free'}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {user ? (
+                <button
+                  onClick={createRoom}
+                  className="nav-button bg-gradient-to-r from-primary to-accent px-8 py-4 rounded-full text-lg font-medium hover:opacity-90"
+                >
+                  Start a New Meeting
+                </button>
+              ) : (
+                <Link
+                  href="/auth/signin"
+                  className="nav-button bg-gradient-to-r from-primary to-accent px-8 py-4 rounded-full text-lg font-medium hover:opacity-90 text-center"
+                >
+                  Get Started for Free
+                </Link>
+              )}
               
               <a
                 href="#features"

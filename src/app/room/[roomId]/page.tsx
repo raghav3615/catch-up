@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/firebase/auth';
 import io, { Socket } from 'socket.io-client';
 import Peer from 'simple-peer';
 
@@ -19,7 +19,7 @@ interface PeerWithSenders extends Peer.Instance {
 }
 
 export default function Room({ params }: { params: { roomId: string } }) {
-  const { data: session } = useSession();
+  const { user } = useAuth();
   const router = useRouter();
   const { roomId } = params;
   
@@ -35,9 +35,8 @@ export default function Room({ params }: { params: { roomId: string } }) {
   const socketRef = useRef<Socket>();
   const peersRef = useRef<PeerConnection[]>([]);
   const userVideo = useRef<HTMLVideoElement>(null);
-  const screenVideo = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    if (!session) {
+  const screenVideo = useRef<HTMLVideoElement>(null);  useEffect(() => {
+    if (!user) {
       router.push('/');
       return;
     }
@@ -85,7 +84,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
       socketRef.current?.disconnect();
       peers.forEach(({ peer }) => peer.destroy());
     };
-  }, [session, roomId, router, peers]);
+  }, [user, roomId, router, peers]);
   const connectToNewUser = (userId: string, stream: MediaStream) => {
     const peer = new Peer({
       initiator: true,
@@ -109,8 +108,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
     peersRef.current.push({ peerId: userId, peer });
   };
-
-  if (!session) {
+  if (!user) {
     return null;
   }
 
@@ -247,9 +245,8 @@ export default function Room({ params }: { params: { roomId: string } }) {
               <div className="absolute top-3 right-3 glass-card px-3 py-1 rounded-full backdrop-blur-md text-sm flex items-center gap-2 bg-green-500/20">
                 <span className="text-green-500">Your Screen</span>
               </div>
-              <div className="absolute bottom-3 left-3 glass-card px-3 py-1 rounded-full backdrop-blur-md text-sm flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full bg-green-500 animate-pulse`}></span>
-                <span>{session?.user?.name || 'You'} (Screen)</span>
+              <div className="absolute bottom-3 left-3 glass-card px-3 py-1 rounded-full backdrop-blur-md text-sm flex items-center gap-2">                <span className={`w-2 h-2 rounded-full bg-green-500 animate-pulse`}></span>
+                <span>{user?.displayName || 'You'} (Screen)</span>
               </div>
               
               {/* Picture-in-picture camera view */}
@@ -269,9 +266,8 @@ export default function Room({ params }: { params: { roomId: string } }) {
                 )}
                 {isVideoOff && (
                   <div className="w-full h-full flex items-center justify-center bg-[#0a0a0f]">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 flex items-center justify-center">
-                      <div className="font-bold text-lg text-muted-foreground">
-                        {session?.user?.name?.charAt(0) || 'Y'}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 flex items-center justify-center">                      <div className="font-bold text-lg text-muted-foreground">
+                        {user?.displayName?.charAt(0) || 'Y'}
                       </div>
                     </div>
                   </div>
@@ -294,16 +290,15 @@ export default function Room({ params }: { params: { roomId: string } }) {
               />
               {isVideoOff && (
                 <div className="w-full aspect-video flex items-center justify-center bg-[#0a0a0f]">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 flex items-center justify-center">
-                    <div className="font-bold text-xl text-muted-foreground">
-                      {session?.user?.name?.charAt(0) || 'Y'}
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 flex items-center justify-center">                    <div className="font-bold text-xl text-muted-foreground">
+                      {user?.displayName?.charAt(0) || 'Y'}
                     </div>
                   </div>
                 </div>
               )}
               <div className="absolute bottom-3 left-3 glass-card px-3 py-1 rounded-full backdrop-blur-md text-sm flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full ${isMicMuted ? 'bg-red-500' : 'bg-green-500'}`}></span>
-                <span>{session?.user?.name || 'You'}</span>
+                <span>{user?.displayName || 'You'}</span>
               </div>
             </div>
           )}

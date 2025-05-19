@@ -7,10 +7,9 @@ interface SignalData {
   to: string;
 }
 
-export const initializeSocket = (httpServer: HTTPServer) => {
-  const io = new Server(httpServer, {
+export const initializeSocket = (httpServer: HTTPServer) => {  const io = new Server(httpServer, {
     cors: {
-      origin: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+      origin: 'http://localhost:3000',
       methods: ['GET', 'POST'],
     },
   });

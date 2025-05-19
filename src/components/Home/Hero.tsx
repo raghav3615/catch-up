@@ -1,11 +1,12 @@
 'use client';
   
-import { useSession, signIn } from 'next-auth/react';
+import { useAuth } from '@/firebase/auth';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function Hero() {
-  const { data: session } = useSession();
+  const { user, signInWithGoogle } = useAuth();
   const router = useRouter();
   
   const createRoom = () => {
@@ -36,15 +37,22 @@ export default function Hero() {
           <p className="text-lg text-muted-foreground mb-10 max-w-2xl">
             Secure, high-quality video conferencing with no downloads required.
             Connect with anyone, anywhere in just one click.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={session ? createRoom : () => signIn()}
-              className="nav-button bg-gradient-to-r from-primary to-accent px-8 py-4 rounded-full text-lg font-medium hover:opacity-90 hover:scale-105 transition-all"
-            >
-              {session ? 'Create Room' : 'Get Started'}
-            </button>
+          </p>            <div className="flex flex-col sm:flex-row gap-4">
+            {user ? (
+              <button
+                onClick={createRoom}
+                className="nav-button bg-gradient-to-r from-primary to-accent px-8 py-4 rounded-full text-lg font-medium hover:opacity-90 hover:scale-105 transition-all"
+              >
+                Create Room
+              </button>
+            ) : (
+              <Link
+                href="/auth/signin"
+                className="nav-button bg-gradient-to-r from-primary to-accent px-8 py-4 rounded-full text-lg font-medium hover:opacity-90 hover:scale-105 transition-all text-center"
+              >
+                Get Started
+              </Link>
+            )}
             
             <a
               href="#features"
