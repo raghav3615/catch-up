@@ -31,11 +31,12 @@ export default function Room({ params }: { params: { roomId: string } }) {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [roomIdCopied, setRoomIdCopied] = useState(false);
+  const [activeVideos, setActiveVideos] = useState<{ id: string, type: 'user' | 'peer' | 'screen', stream: MediaStream }[]>([]);
   
   const socketRef = useRef<Socket>();
   const peersRef = useRef<PeerConnection[]>([]);
   const userVideo = useRef<HTMLVideoElement>(null);
-
+  const screenVideo = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     if (!session) {
       router.push('/');
@@ -52,6 +53,12 @@ export default function Room({ params }: { params: { roomId: string } }) {
         if (userVideo.current) {
           userVideo.current.srcObject = currentStream;
         }
+        
+        // Add user stream to active videos array
+        setActiveVideos(prev => [
+          ...prev.filter(v => v.type !== 'user'),
+          { id: 'user', type: 'user', stream: currentStream }
+        ]);
 
         // Join room
         socketRef.current?.emit('join-room', roomId);
@@ -79,8 +86,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
       socketRef.current?.disconnect();
       peers.forEach(({ peer }) => peer.destroy());
     };
-  }, [session, roomId, router, peers, stream, screenStream]);
-
+  }, [session, roomId, router, peers]);
   const connectToNewUser = (userId: string, stream: MediaStream) => {
     const peer = new Peer({
       initiator: true,
@@ -94,6 +100,12 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
     peer.on('stream', (remoteStream) => {
       setPeers(peers => [...peers, { peerId: userId, peer }]);
+      
+      // Add peer stream to active videos
+      setActiveVideos(prev => [
+        ...prev,
+        { id: userId, type: 'peer', stream: remoteStream }
+      ]);
     });
 
     peersRef.current.push({ peerId: userId, peer });
@@ -128,30 +140,31 @@ export default function Room({ params }: { params: { roomId: string } }) {
     setRoomIdCopied(true);
     setTimeout(() => setRoomIdCopied(false), 3000);
   };
-
   const toggleScreenShare = async () => {
     try {
       if (!isScreenSharing) {
         // Start screen sharing
         const displayMediaOptions = {
-          video: true,
+          video: { 
+            cursor: "always",
+            displaySurface: "monitor" 
+          } as MediaTrackConstraints,
           audio: false
         };
         
         const screenCaptureStream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
         setScreenStream(screenCaptureStream);
         
-        // Display screen share to local user
-        if (userVideo.current) {
-          userVideo.current.srcObject = screenCaptureStream;
-        }
+        // Add screen share to active videos
+        setActiveVideos(prev => [
+          ...prev,
+          { id: 'screen', type: 'screen', stream: screenCaptureStream }
+        ]);
         
         // Set up listener for when user ends screen sharing
         screenCaptureStream.getVideoTracks()[0].onended = () => {
-          // Restore camera video
-          if (userVideo.current && stream) {
-            userVideo.current.srcObject = stream;
-          }
+          // Remove screen from active videos
+          setActiveVideos(prev => prev.filter(v => v.id !== 'screen'));
           
           setIsScreenSharing(false);
           if (screenCaptureStream) {
@@ -166,10 +179,8 @@ export default function Room({ params }: { params: { roomId: string } }) {
         if (screenStream) {
           screenStream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
           
-          // Restore original video to local view
-          if (userVideo.current && stream) {
-            userVideo.current.srcObject = stream;
-          }
+          // Remove screen from active videos
+          setActiveVideos(prev => prev.filter(v => v.id !== 'screen'));
         }
         
         setIsScreenSharing(false);
@@ -214,41 +225,85 @@ export default function Room({ params }: { params: { roomId: string } }) {
             </div>
           </div>
         </div>
-      </div>
-      
+      </div>      
       <div className="container mx-auto p-4 md:p-6 pt-28 relative">
-        {/* Video grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
-          {/* Local video */}
-          <div className="glass-card relative rounded-xl overflow-hidden border border-[#ffffff15]">
-            <video
-              ref={userVideo}
-              autoPlay
-              playsInline
-              muted
-              className={`w-full aspect-video object-cover ${isVideoOff ? 'hidden' : ''}`}
-            />
-            {isVideoOff && (
-              <div className="w-full aspect-video flex items-center justify-center bg-[#0a0a0f]">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 flex items-center justify-center">
-                  <div className="font-bold text-xl text-muted-foreground">
-                    {session?.user?.name?.charAt(0) || 'Y'}
+        {/* Video grid - Screen share gets priority */}
+        <div className="mb-6">          {isScreenSharing && (
+            <div className="glass-card relative rounded-xl overflow-hidden border border-[#ffffff15]">              <video
+                ref={(video) => {
+                  if (video && screenStream) {
+                    video.srcObject = screenStream;
+                  }
+                }}
+                autoPlay
+                playsInline
+                className="w-full aspect-video object-contain bg-black"
+              />
+              <div className="absolute top-3 right-3 glass-card px-3 py-1 rounded-full backdrop-blur-md text-sm flex items-center gap-2 bg-green-500/20">
+                <span className="text-green-500">Your Screen</span>
+              </div>
+              <div className="absolute bottom-3 left-3 glass-card px-3 py-1 rounded-full backdrop-blur-md text-sm flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full bg-green-500 animate-pulse`}></span>
+                <span>{session?.user?.name || 'You'} (Screen)</span>
+              </div>
+              
+              {/* Picture-in-picture camera view */}
+              <div className="absolute bottom-3 right-3 w-48 h-36 shadow-xl rounded-lg overflow-hidden border-2 border-[#ffffff20]">
+                {stream && (
+                  <video
+                    autoPlay
+                    playsInline
+                    muted
+                    className={`w-full h-full object-cover ${isVideoOff ? 'hidden' : ''}`}
+                    ref={(video) => {
+                      if (video && stream) {
+                        video.srcObject = stream;
+                      }
+                    }}
+                  />
+                )}
+                {isVideoOff && (
+                  <div className="w-full h-full flex items-center justify-center bg-[#0a0a0f]">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 flex items-center justify-center">
+                      <div className="font-bold text-lg text-muted-foreground">
+                        {session?.user?.name?.charAt(0) || 'Y'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Participant videos */}        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
+          {/* Local user video - only shown when not screen sharing */}
+          {!isScreenSharing && (
+            <div className="glass-card relative rounded-xl overflow-hidden border border-[#ffffff15]">
+              <video
+                ref={userVideo}
+                autoPlay
+                playsInline
+                muted
+                className={`w-full aspect-video object-cover ${isVideoOff ? 'hidden' : ''}`}
+              />
+              {isVideoOff && (
+                <div className="w-full aspect-video flex items-center justify-center bg-[#0a0a0f]">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 flex items-center justify-center">
+                    <div className="font-bold text-xl text-muted-foreground">
+                      {session?.user?.name?.charAt(0) || 'Y'}
+                    </div>
                   </div>
                 </div>
+              )}
+              <div className="absolute bottom-3 left-3 glass-card px-3 py-1 rounded-full backdrop-blur-md text-sm flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${isMicMuted ? 'bg-red-500' : 'bg-green-500'}`}></span>
+                <span>{session?.user?.name || 'You'}</span>
               </div>
-            )}
-            {isScreenSharing && (
-              <div className="absolute top-3 right-3 glass-card px-3 py-1 rounded-full backdrop-blur-md text-sm flex items-center gap-2 bg-green-500/20">
-                <span className="text-green-500">Screen Sharing</span>
-              </div>
-            )}
-            <div className="absolute bottom-3 left-3 glass-card px-3 py-1 rounded-full backdrop-blur-md text-sm flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${isMicMuted ? 'bg-red-500' : 'bg-green-500'}`}></span>
-              <span>{session?.user?.name || 'You'}</span>
             </div>
-          </div>
+          )}
 
-          {/* Remote videos */}
+          {/* Remote peers */}
           {peers.map(({ peerId, peer }) => (
             <div key={peerId} className="glass-card relative rounded-xl overflow-hidden border border-[#ffffff15]">
               <video
