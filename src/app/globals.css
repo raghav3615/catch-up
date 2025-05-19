@@ -22,6 +22,40 @@
   --radius: 0.5rem;
 }
 
+.nav-button {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  position: relative;
+  overflow: hidden;
+  color: white;
+}
+
+.nav-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.nav-button:hover::before {
+  opacity: 1;
+}
+
+.nav-button-gradient {
+  background: linear-gradient(to right, var(--primary), var(--accent));
+}
+
+.animate-spin-slow {
+  animation: spin 30s linear infinite;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);

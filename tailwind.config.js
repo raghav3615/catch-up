@@ -35,6 +35,7 @@ module.exports = {
       },
       animation: {
         'float': 'float 3s ease-in-out infinite',
+        'spin-slow': 'spin 30s linear infinite',
       },
       keyframes: {
         float: {

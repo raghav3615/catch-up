@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Video Conference App",
-  description: "A real-time video conferencing application",
+  title: "VideoConf | Secure Video Conferencing",
+  description: "Connect with anyone, anywhere with secure, high-quality video calls. No downloads required.",
 };
 
 export default function RootLayout({
@@ -19,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+    <html lang="en" className="scroll-smooth">
+      <body className={`${inter.className} antialiased bg-background text-foreground`}>
         <Providers>{children}</Providers>
       </body>
     </html>
