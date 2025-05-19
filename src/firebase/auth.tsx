@@ -24,14 +24,19 @@ interface AuthContextType {
   signOut: () => Promise<AuthResult>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+// Provide a default context that matches the AuthContextType
+const defaultAuthContextValue: AuthContextType = {
+  user: null,
+  loading: true, // Important: default to loading true
+  signInWithGoogle: async () => { console.warn("AuthProvider not yet available"); return { success: false, error: "AuthProvider not available" }; },
+  signInWithGithub: async () => { console.warn("AuthProvider not yet available"); return { success: false, error: "AuthProvider not available" }; },
+  signOut: async () => { console.warn("AuthProvider not yet available"); return { success: false, error: "AuthProvider not available" }; },
+};
+
+const AuthContext = createContext<AuthContextType>(defaultAuthContextValue); // Changed from null
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext); // No need for the null check if a default is always provided
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
